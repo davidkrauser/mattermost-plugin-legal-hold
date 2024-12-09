@@ -38,10 +38,13 @@ const LegalHoldRow = (props: LegalHoldRowProps) => {
 
     return (
         <React.Fragment>
-            <div>{lh.display_name}</div>
-            <div>{startsAt}</div>
-            <div>{endsAt}</div>
-            <div>{props.users.length} {'users'}</div>
+            <div
+                data-testid={`name-${lh.id}`}
+                data-legalholdid={lh.id}
+            >{lh.display_name}</div>
+            <div data-testid={`start-date-${lh.id}`}>{startsAt}</div>
+            <div data-testid={`end-date-${lh.id}`}>{endsAt}</div>
+            <div data-testid={`users-${lh.id}`}>{props.users.length} {'users'}</div>
             <div
                 style={{
                     display: 'inline-flex',
@@ -60,6 +63,8 @@ const LegalHoldRow = (props: LegalHoldRowProps) => {
                     )}
                 >
                     <a
+                        data-testid={`update-${lh.id}`}
+                        aria-label={`${lh.display_name} update button`}
                         href='#'
                         onClick={() => props.showUpdateModal(lh)}
                         style={{
@@ -88,6 +93,8 @@ const LegalHoldRow = (props: LegalHoldRowProps) => {
                     )}
                 >
                     <a
+                        data-testid={`show-${lh.id}`}
+                        aria-label={`${lh.display_name} show secret button`}
                         href='#'
                         onClick={() => props.showSecretModal(lh)}
                         style={{
@@ -116,6 +123,8 @@ const LegalHoldRow = (props: LegalHoldRowProps) => {
                     )}
                 >
                     <a
+                        data-testid={`download-${lh.id}`}
+                        aria-label={`${lh.display_name} download button`}
                         href={downloadUrl}
                         download={true}
                         style={{
@@ -133,6 +142,9 @@ const LegalHoldRow = (props: LegalHoldRowProps) => {
                     </a>
                 </OverlayTrigger>
                 <a
+                    data-testid={`release-${lh.id}`}
+                    role='button'
+                    aria-label={`${lh.display_name} release button`}
                     href='#'
                     onClick={release}
                     className={'btn btn-danger'}

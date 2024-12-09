@@ -144,6 +144,7 @@ const LegalHoldsSetting = () => {
                     </div>
                     <CreateLegalHoldButton
                         onClick={() => setShowCreateModal(true)}
+                        dataTestId='createNewLegalHoldOnTop'
                     />
                 </div>
                 <hr/>
@@ -179,6 +180,7 @@ const LegalHoldsSetting = () => {
                         </p>
                         <CreateLegalHoldButton
                             onClick={() => setShowCreateModal(true)}
+                            dataTestId='createNewLegalHoldOnList'
                         />
                     </div>
                 )}
