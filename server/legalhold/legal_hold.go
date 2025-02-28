@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/gocarina/gocsv"
+	mm_model "github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/mattermost/mattermost-server/v6/shared/filestore"
 
@@ -81,25 +82,46 @@ func (ex *Execution) Execute() (int64, error) {
 // GetChannels populates the list of channels that the Execution needs to cover within the
 // internal state of the Execution struct.
 func (ex *Execution) GetChannels() error {
+	var targetUsers []*mm_model.User
+
 	for _, userID := range ex.LegalHold.UserIDs {
 		user, appErr := ex.papi.GetUser(userID)
 		if appErr != nil {
 			return appErr
 		}
+		targetUsers = append(targetUsers, user)
+	}
 
-		channelIDs, err := ex.store.GetChannelIDsForUserDuring(userID, ex.ExecutionStartTime, ex.ExecutionEndTime, ex.LegalHold.IncludePublicChannels)
+	for _, groupID := range ex.LegalHold.GroupIDs {
+		group, appErr := ex.papi.GetGroup(groupID)
+		if appErr != nil {
+			return appErr
+		}
+		perPage := 50
+		numPages := (*group.MemberCount + perPage - 1) / perPage
+		for i := 0; i < numPages; i++ {
+			users, appErr := ex.papi.GetGroupMemberUsers(groupID, i, perPage)
+			if appErr != nil {
+				return appErr
+			}
+			targetUsers = append(targetUsers, users...)
+		}
+	}
+
+	for _, user := range targetUsers {
+		channelIDs, err := ex.store.GetChannelIDsForUserDuring(user.Id, ex.ExecutionStartTime, ex.ExecutionEndTime, ex.LegalHold.IncludePublicChannels)
 		if err != nil {
 			return err
 		}
 
 		ex.channelIDs = append(ex.channelIDs, channelIDs...)
 
-		ex.papi.LogDebug("Legal hold executor - GetChannels", "user_id", userID, "channel_count", len(channelIDs))
+		ex.papi.LogDebug("Legal hold executor - GetChannels", "user_id", user.Id, "channel_count", len(channelIDs))
 
 		// Add to channels index
 		for _, channelID := range channelIDs {
-			if idx, ok := ex.index.Users[userID]; !ok {
-				ex.index.Users[userID] = model.LegalHoldIndexUser{
+			if idx, ok := ex.index.Users[user.Id]; !ok {
+				ex.index.Users[user.Id] = model.LegalHoldIndexUser{
 					Username: user.Username,
 					Email:    user.Email,
 					Channels: []model.LegalHoldChannelMembership{
@@ -111,7 +133,7 @@ func (ex *Execution) GetChannels() error {
 					},
 				}
 			} else {
-				ex.index.Users[userID] = model.LegalHoldIndexUser{
+				ex.index.Users[user.Id] = model.LegalHoldIndexUser{
 					Username: user.Username,
 					Email:    user.Email,
 					Channels: append(idx.Channels, model.LegalHoldChannelMembership{
