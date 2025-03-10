@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gorilla/mux"
 	pluginapi "github.com/mattermost/mattermost-plugin-api"
 	"github.com/mattermost/mattermost-plugin-legal-hold/server/config"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -12,6 +13,40 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
+
+func TestSearchGroups(t *testing.T) {
+	p := &Plugin{}
+	api := &plugintest.API{}
+	p.SetDriver(&plugintest.Driver{})
+	p.SetAPI(api)
+	p.Client = pluginapi.NewClient(p.API, p.Driver)
+
+	// Mock the router
+	p.router = mux.NewRouter()
+	p.router.HandleFunc("/api/v1/groups/search", p.searchGroups).Methods(http.MethodGet)
+
+	// Mock the API calls
+	api.On("HasPermissionTo", "test_user_id", model.PermissionManageSystem).Return(true)
+
+	// Test case 1: Missing prefix parameter
+	req1, err := http.NewRequest(http.MethodGet, "/api/v1/groups/search", nil)
+	require.NoError(t, err)
+	req1.Header.Add("Mattermost-User-Id", "test_user_id")
+
+	recorder1 := httptest.NewRecorder()
+	p.ServeHTTP(nil, recorder1, req1)
+	require.Equal(t, http.StatusBadRequest, recorder1.Code)
+
+	// Test case 2: With prefix parameter but SQLStore is nil
+	// This will result in an internal server error since we haven't initialized SQLStore
+	req2, err := http.NewRequest(http.MethodGet, "/api/v1/groups/search?prefix=test", nil)
+	require.NoError(t, err)
+	req2.Header.Add("Mattermost-User-Id", "test_user_id")
+
+	recorder2 := httptest.NewRecorder()
+	p.ServeHTTP(nil, recorder2, req2)
+	require.Equal(t, http.StatusInternalServerError, recorder2.Code)
+}
 
 func TestTestAmazonS3Connection(t *testing.T) {
 	p := &Plugin{}
