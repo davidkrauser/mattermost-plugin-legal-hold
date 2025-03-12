@@ -5,7 +5,7 @@ export interface LegalHold {
     starts_at: number;
     ends_at: number;
     user_ids: string[];
-    group_ids?: string[];
+    group_ids: string[];
     include_public_channels: boolean;
     secret: string;
 }
