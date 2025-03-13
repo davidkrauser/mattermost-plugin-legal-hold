@@ -93,18 +93,18 @@ func (ex *Execution) GetChannels() error {
 	}
 
 	for _, groupID := range ex.LegalHold.GroupIDs {
-		group, appErr := ex.papi.GetGroup(groupID)
-		if appErr != nil {
-			return appErr
-		}
 		perPage := 50
-		numPages := (*group.MemberCount + perPage - 1) / perPage
-		for i := 0; i < numPages; i++ {
-			users, appErr := ex.papi.GetGroupMemberUsers(groupID, i, perPage)
+		currPage := 0
+		for {
+			users, appErr := ex.papi.GetGroupMemberUsers(groupID, currPage, perPage)
 			if appErr != nil {
 				return appErr
 			}
+			if len(users) < 1 || currPage > 1000 {
+				break
+			}
 			targetUsers = append(targetUsers, users...)
+			currPage++
 		}
 	}
 
