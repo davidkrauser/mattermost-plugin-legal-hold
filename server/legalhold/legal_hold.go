@@ -108,7 +108,13 @@ func (ex *Execution) GetChannels() error {
 		}
 	}
 
+	handledUsers := make(map[string]struct{})
 	for _, user := range targetUsers {
+		if _, handled := handledUsers[user.Id]; handled {
+			continue
+		}
+		handledUsers[user.Id] = struct{}{}
+
 		channelIDs, err := ex.store.GetChannelIDsForUserDuring(user.Id, ex.ExecutionStartTime, ex.ExecutionEndTime, ex.LegalHold.IncludePublicChannels)
 		if err != nil {
 			return err
