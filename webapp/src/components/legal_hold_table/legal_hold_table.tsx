@@ -7,6 +7,7 @@ interface LegalHoldTableProps {
     legalHolds: LegalHold[];
     actions: {
         getMissingProfilesByIds: Function,
+        getMissingGroupsByIds: Function,
     },
     releaseLegalHold: Function,
     showUpdateModal: Function,
@@ -22,10 +23,19 @@ const LegalHoldTable = (props: LegalHoldTableProps) => {
         ),
     );
 
+    const group_ids = Array.from(
+        new Set(
+            legalHolds.map((lh) => lh.group_ids).filter((i) => i !== null).reduce((prev, cur) => prev.concat(cur), []).filter((i) => i !== null),
+        ),
+    );
+
     useEffect(() => {
         props.actions.getMissingProfilesByIds(
             user_ids,
         );
+	props.actions.getMissingGroupsByIds(
+	    group_ids,
+	);
     }, [props.actions, user_ids]);
 
     return (

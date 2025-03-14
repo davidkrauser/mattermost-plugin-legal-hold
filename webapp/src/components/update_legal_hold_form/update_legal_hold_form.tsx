@@ -25,7 +25,7 @@ const UpdateLegalHoldForm = (props: UpdateLegalHoldFormProps) => {
     const [id, setId] = useState('');
     const [displayName, setDisplayName] = useState('');
     const [users, setUsers] = useState(Array<UserProfile>());
-    const [groups, setGroups] = useState(Array<any>());
+    const [groups, setGroups] = useState(Array<Group>());
     const [startsAt, setStartsAt] = useState('');
     const [endsAt, setEndsAt] = useState('');
     const [saving, setSaving] = useState(false);
@@ -78,7 +78,7 @@ const UpdateLegalHoldForm = (props: UpdateLegalHoldFormProps) => {
                 setEndsAt(endsAtString);
             }
         }
-    }, [props.legalHold, props.users, props.visible, id]);
+    }, [props.legalHold, props.users, props.groups, props.visible, id]);
 
     const onSave = () => {
         if (saving) {
